@@ -65,5 +65,131 @@
       <button type="button"></button>
       <button type="button"></button>
     </div>
+    <!-- <button class="reset">Reset Game</button> -->
+    <script>
+      const hint = document.querySelector(".hint");
+      const gameButtons = document.querySelectorAll(".game button");
+      const createGame = document.querySelector("form button.create");
+      const gameId = document.querySelector("form input[name=id]");
+      const joinGame = document.querySelector("form button.join");
+      const form = document.querySelector("form");
+      const game = document.querySelector(".game");
+
+      let state = null;
+      let player = null;
+
+      function checkForWinner() {
+        const winningStates = [
+          [0, 1, 2],
+          [3, 4, 5],
+          [6, 7, 8],
+          [0, 3, 6],
+          [1, 4, 7],
+          [2, 5, 8],
+          [0, 4, 8],
+          [2, 4, 6],
+        ];
+
+        for (const [a, b, c] of winningStates) {
+          if (
+            state.board[a] &&
+            state.board[a] === state.board[b] &&
+            state.board[a] === state.board[c]
+          ) {
+            hint.innerText = `${state.board[a]} wins!`;
+
+            state = null;
+            return;
+          }
+        }
+      }
+
+      function connect(gameCode, playerCode) {
+        const socket = new WebSocket(
+          `http://localhost:8080/${gameCode}?player=${playerCode}`,
+        );
+
+        socket.addEventListener("open", () => {
+          form.style.display = "none";
+          game.style.display = "grid";
+        });
+
+        socket.addEventListener("message", ({ data }) => {
+          const message = JSON.parse(data);
+
+          if (message.type === "ping") {
+            console.log("ping");
+            socket.send(JSON.stringify({ type: "pong" }));
+            return;
+          }
+
+          if (message.type === "state") {
+            state = message.data;
+            console.log({ state });
+
+            if (
+              (!state.connected.playerX && player === "X") ||
+              (!state.connected.playerO && player === "Y")
+            ) {
+              hint.innerText =
+                "Disconnected from game server (check your internet?)";
+            } else if (!state.connected.playerX || !state.connected.playerO) {
+              console.log(state.connected);
+              hint.innerText = `Waiting on other player... Use game code ${gameCode}`;
+            } else if (state.turn === player) {
+              hint.innerText = "It's your turn";
+            } else {
+              hint.innerText = "It's your opponent's turn";
+            }
+
+            gameButtons.forEach((button, i) => {
+              if (state.board[i]) {
+                button.innerText = state.board[i];
+              }
+            });
+
+            checkForWinner();
+          }
+        });
+
+        socket.addEventListener("error", () => {
+          hint.innerText = "Couldn't connect to game server";
+        });
+
+        gameButtons.forEach((button, i) => {
+          button.addEventListener("click", () => {
+            if (
+              state.connected.playerX &&
+              state.connected.playerO &&
+              state.board[i] === null &&
+              player === state.turn
+            ) {
+              socket.send(JSON.stringify({ type: "move", data: i }));
+            }
+          });
+        });
+      }
+
+      createGame.addEventListener("click", async () => {
+        const response = fetch("http://localhost:8080/", {
+          method: "POST",
+        });
+
+        const data = await response.json();
+        player = "X";
+        connect(data.gameCode, data.playerId);
+      });
+
+      joinGame.addEventListener("click", async () => {
+        const gameCode = gameId.value;
+        const response = await fetch(`http://localhost:8080/${gameCode}`, {
+          method: "GET",
+        });
+
+        const data = await response.json();
+        player = "O";
+        connect(gameCode, data.playerId);
+      });
+    </script>
   </body>
 </html>

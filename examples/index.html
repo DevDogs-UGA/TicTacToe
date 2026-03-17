@@ -53,5 +53,57 @@
       <button type="button"></button>
     </div>
     <button class="reset">Reset Game</button>
+    <script>
+      const gameState = ["", "", "", "", "", "", "", "", ""];
+      let turn = "X";
+
+      const winningStates = [
+        [0, 1, 2],
+        [3, 4, 5],
+        [6, 7, 8],
+        [0, 3, 6],
+        [1, 4, 7],
+        [2, 5, 8],
+        [0, 4, 8],
+        [2, 4, 6],
+      ];
+
+      const hint = document.querySelector(".hint");
+      const resetButton = document.querySelector(".reset");
+      const gameButtons = document.querySelectorAll(".game button");
+
+      gameButtons.forEach((button, i) => {
+        button.addEventListener("click", () => {
+          if (turn !== null && gameState[i] === "") {
+            button.innerText = turn;
+            gameState[i] = turn;
+
+            for (const [a, b, c] of winningStates) {
+              if (
+                gameState[a] !== "" &&
+                gameState[a] === gameState[b] &&
+                gameState[a] === gameState[c]
+              ) {
+                hint.innerText = `${turn} wins!`;
+                turn = null;
+                return;
+              }
+            }
+
+            turn = turn === "X" ? "O" : "X";
+          }
+        });
+      });
+
+      resetButton.addEventListener("click", () => {
+        gameButtons.forEach((button, i) => {
+          button.innerText = "";
+          gameState[i] = "";
+        });
+
+        hint.innerText = "";
+        turn = "X";
+      });
+    </script>
   </body>
 </html>
