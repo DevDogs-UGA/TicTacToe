@@ -1,0 +1,57 @@
+<!doctype html>
+<html>
+  <head>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: sans-serif;
+        margin: 20px;
+        padding: 0;
+      }
+
+      .game {
+        background-color: black;
+        gap: 2px;
+        aspect-ratio: 1 / 1;
+        width: 12rem;
+        display: grid;
+        grid-template-rows: repeat(3, 1fr);
+        grid-template-columns: repeat(3, 1fr);
+
+        button {
+          background-color: white;
+          border: none;
+          font-size: 3rem;
+          font-weight: 800;
+
+          &:not(:disabled):hover {
+            background-color: lightgray;
+          }
+        }
+      }
+
+      .reset {
+        margin-block: 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Tic Tac Toe!</h1>
+    <p class="hint"></p>
+    <div class="game">
+      <button type="button"></button>
+      <button type="button"></button>
+      <button type="button"></button>
+      <button type="button"></button>
+      <button type="button"></button>
+      <button type="button"></button>
+      <button type="button"></button>
+      <button type="button"></button>
+      <button type="button"></button>
+    </div>
+    <button class="reset">Reset Game</button>
+  </body>
+</html>
